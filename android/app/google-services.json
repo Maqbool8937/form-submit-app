@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "659260323376",
+    "project_id": "form-submit-app-59052",
+    "storage_bucket": "form-submit-app-59052.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:659260323376:android:f6ee67121b8251d4205ff5",
+        "android_client_info": {
+          "package_name": "com.example.form_submit_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuDMAicWuPT9jlZzGbTHvpgU-SvOlmJu0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
