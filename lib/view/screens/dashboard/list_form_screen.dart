@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:form_submit_app/forms/crime_report_form.dart';
+import 'package:form_submit_app/forms/help_form.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class InspectVehicleFormScreen extends StatefulWidget {
@@ -177,7 +178,7 @@ class _InspectVehicleFormScreenState extends State<InspectVehicleFormScreen> {
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
-                // Get.to(() => HelpDetailScreen());
+                Get.to(() => CrimeReportForm());
               },
               child: Card(
                 child: Container(
@@ -203,7 +204,7 @@ class _InspectVehicleFormScreenState extends State<InspectVehicleFormScreen> {
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
-                // Get.to(() => HelpDetailScreen());
+                Get.to(() => HelpForm());
               },
               child: Card(
                 child: Container(

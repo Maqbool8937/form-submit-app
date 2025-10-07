@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:form_submit_app/view/screens/dashboard/dashboard_screen.dart';
+import 'package:get/get.dart';
 
 class ProfileScreen extends StatelessWidget {
   final Map<String, dynamic> userData;
@@ -19,7 +21,15 @@ class ProfileScreen extends StatelessWidget {
     String username = userData['username'] ?? 'N/A';
 
     return Scaffold(
-      appBar: AppBar(title: Text('User Profile')),
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Get.off(() => DashboardScreen(userData: userData));
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
+        title: Text('User Profile'),
+      ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: ListView(

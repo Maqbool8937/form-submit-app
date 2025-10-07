@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:form_submit_app/view/screens/authentication/profile_screen.dart';
-import 'package:form_submit_app/view/screens/dashboard/accident_detail_screen.dart';
 import 'package:form_submit_app/view/screens/dashboard/crime_detail_screen.dart';
 import 'package:form_submit_app/view/screens/dashboard/help_detail_screen.dart';
 import 'package:form_submit_app/view/screens/dashboard/list_form_screen.dart';
+import 'package:form_submit_app/view/widgets/crime_card_widget.dart';
 import 'package:form_submit_app/view/widgets/dashboard_drawer.dart';
+import 'package:form_submit_app/view/widgets/help_card_widget.dart';
 import 'package:get/get.dart';
 // ignore: unnecessary_import
 import 'package:get/get_core/src/get_main.dart';
@@ -238,7 +239,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: () {
-                  Get.to(() => HelpDetailScreen());
+                  Get.to(() => HelpDetailScreen(collectionName: 'help_forms'));
                 },
                 child: Container(
                   height: mediaquerysize.height * 0.07.h,
@@ -273,83 +274,88 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  Get.to(() => HelpDetailScreen());
-                },
-                child: Container(
-                  height: mediaquerysize.height * 0.07.h,
-                  width: mediaquerysize.width * 1.w,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.green,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Helps',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        Text(
-                          '2',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              HelpCard(mediaquerysize: mediaquerysize),
+              // GestureDetector(
+              //   onTap: () {
+              //     Get.to(() => HelpDetailScreen());
+              //   },
+              //   child: Container(
+              //     height: mediaquerysize.height * 0.07.h,
+              //     width: mediaquerysize.width * 1.w,
+              //     decoration: BoxDecoration(
+              //       borderRadius: BorderRadius.circular(10),
+              //       color: Colors.green,
+              //     ),
+              //     child: Padding(
+              //       padding: const EdgeInsets.all(16.0),
+              //       child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //         children: [
+              //           Text(
+              //             'Helps',
+              //             style: TextStyle(
+              //               color: Colors.white,
+              //               fontWeight: FontWeight.bold,
+              //               fontSize: 15,
+              //             ),
+              //           ),
+              //           Text(
+              //             '2',
+              //             style: TextStyle(
+              //               fontSize: 16,
+              //               fontWeight: FontWeight.bold,
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // ),
               const SizedBox(height: 8),
+              CrimeCard(mediaquerysize: mediaquerysize),
+              // GestureDetector(
+              //   onTap: () {
+              //     Get.to(() => CrimeDetailScreen());
+              //   },
+              //   child: Container(
+              //     height: mediaquerysize.height * 0.07.h,
+              //     width: mediaquerysize.width * 1.w,
+              //     decoration: BoxDecoration(
+              //       borderRadius: BorderRadius.circular(10),
+              //       color: Colors.red,
+              //     ),
+              //     child: Padding(
+              //       padding: const EdgeInsets.all(16.0),
+              //       child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //         children: [
+              //           Text(
+              //             'Crime',
+              //             style: TextStyle(
+              //               color: Colors.white,
+              //               fontWeight: FontWeight.bold,
+              //               fontSize: 15,
+              //             ),
+              //           ),
+              //           Text(
+              //             '2',
+              //             style: TextStyle(
+              //               fontSize: 16,
+              //               fontWeight: FontWeight.bold,
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              SizedBox(height: 8),
               GestureDetector(
                 onTap: () {
-                  Get.to(() => CrimeDetailScreen());
-                },
-                child: Container(
-                  height: mediaquerysize.height * 0.07.h,
-                  width: mediaquerysize.width * 1.w,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.red,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Crime',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        Text(
-                          '2',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  Get.to(() => CrimeDetailScreen());
+                  Get.to(
+                    () => CrimeDetailScreen(collectionName: 'crime_reports'),
+                  );
+                  // Get.to(() => CrimeDetailScreen());
                 },
                 child: Container(
                   height: mediaquerysize.height * 0.07.h,
@@ -404,17 +410,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        4,
-                      ), // <-- smaller value = more rectangular
-                      side: BorderSide(
-                        color: Colors.green, // border color
-                        width: 1, // border thickness
-                      ),
+                      borderRadius: BorderRadius.circular(4),
+                      side: BorderSide(color: Colors.green, width: 1),
                     ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
-                      vertical: 12,
+                      vertical: 15,
                     ), // optional
                   ),
                   child: const Text(
