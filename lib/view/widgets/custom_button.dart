@@ -23,7 +23,7 @@ class CustomButton extends StatelessWidget {
       fontWeight: FontWeight.w600,
     ),
     this.onTap,
-    this.width = 300,
+    this.width = 400,
     this.isEnabled = false,
   });
 

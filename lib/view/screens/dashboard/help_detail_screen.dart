@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:form_submit_app/view/screens/dashboard/dashboard_screen.dart';
+import 'package:get/get.dart';
 
 class HelpDetailScreen extends StatefulWidget {
   final String collectionName; // e.g. 'help_forms'
@@ -17,6 +19,12 @@ class _HelpDetailScreenState extends State<HelpDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Get.off(() => DashboardScreen(userData: {}));
+          },
+          icon: Icon(Icons.arrow_back),
+        ),
         title: const Text('Help Form Details'),
         backgroundColor: Colors.red,
       ),
