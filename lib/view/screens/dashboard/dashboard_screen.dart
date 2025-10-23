@@ -9,6 +9,7 @@ import 'package:form_submit_app/view/screens/dashboard/list_form_screen.dart';
 import 'package:form_submit_app/view/widgets/crime_card_widget.dart';
 import 'package:form_submit_app/view/widgets/dashboard_drawer.dart';
 import 'package:form_submit_app/view/widgets/help_card_widget.dart';
+import 'package:form_submit_app/view/widgets/kpi_card.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -203,42 +204,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  Get.to(() => HelpDetailScreen(collectionName: 'help_forms'));
-                },
-                child: Container(
-                  height: mediaquerysize.height * 0.07,
-                  width: mediaquerysize.width * 1,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.blue,
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Road Safety KPI',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        Text(
-                          '2',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              // GestureDetector(
+              //   onTap: () {
+              //     Get.to(() => HelpDetailScreen(collectionName: 'help_forms'));
+              //   },
+              //   child: Container(
+              //     height: mediaquerysize.height * 0.07,
+              //     width: mediaquerysize.width * 1,
+              //     decoration: BoxDecoration(
+              //       borderRadius: BorderRadius.circular(10),
+              //       color: Colors.blue,
+              //     ),
+              //     child: const Padding(
+              //       padding: EdgeInsets.all(16.0),
+              //       child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //         children: [
+              //           Text(
+              //             'Road Safety KPI',
+              //             style: TextStyle(
+              //               color: Colors.white,
+              //               fontWeight: FontWeight.bold,
+              //               fontSize: 15,
+              //             ),
+              //           ),
+              //           Text(
+              //             '2',
+              //             style: TextStyle(
+              //               fontSize: 16,
+              //               fontWeight: FontWeight.bold,
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              // ),
+              KpiCard(mediaquerysize: mediaquerysize),
               const SizedBox(height: 8),
               HelpCard(mediaquerysize: mediaquerysize),
               const SizedBox(height: 8),
@@ -352,8 +354,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
-
-
 
 // import 'package:flutter/material.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';

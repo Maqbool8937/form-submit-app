@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:form_submit_app/forms/tamis_form.dart';
 import 'package:form_submit_app/view/screens/authentication/cnic_login.dart';
 import 'package:get/get.dart';
 
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
       child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
         home: CnicLoginScreen(),
-        // home: SignupScreen(),
+        // home: TamisForm(),
       ),
     );
   }

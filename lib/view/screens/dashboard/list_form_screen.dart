@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:form_submit_app/controllers/getxControllers/inspect_vehical_controller.dart';
 import 'package:form_submit_app/forms/crime_report_form.dart';
 import 'package:form_submit_app/forms/help_form.dart';
+import 'package:form_submit_app/forms/kpi_form.dart';
 import 'package:form_submit_app/view/screens/dashboard/dashboard_screen.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -51,8 +52,11 @@ class InspectVehicleFormScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 8),
               GestureDetector(
-                onTap: () =>
-                    _launchExternalUrl('https://phpkpis.phppolice.com'),
+                onTap: () {
+                  Get.to(() => KPIFormScreen());
+                },
+                // onTap: () =>
+                //     _launchExternalUrl('https://phpkpis.phppolice.com'),
                 child: Card(
                   child: Container(
                     height: mediaquerysize.height * 0.07,
