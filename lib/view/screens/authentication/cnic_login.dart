@@ -7,7 +7,6 @@ import 'package:form_submit_app/view/screens/dashboard/dashboard_screen.dart';
 import 'package:form_submit_app/view/widgets/custom_button.dart';
 import 'package:form_submit_app/view/widgets/custom_field.dart';
 import 'package:get/get.dart';
-import 'profile_screen.dart';
 
 class CnicLoginScreen extends StatefulWidget {
   CnicLoginScreen({super.key});
@@ -57,6 +56,7 @@ class _CnicLoginScreenState extends State<CnicLoginScreen> {
     if (result != null) {
       // ✅ Pass result to DashboardScreen
       Get.off(() => DashboardScreen(userData: result));
+      //Get.off(() => DashboardScreen());
     } else {
       Get.snackbar(
         'Login Failed',

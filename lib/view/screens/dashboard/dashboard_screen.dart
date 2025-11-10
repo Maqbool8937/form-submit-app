@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:form_submit_app/controllers/getxControllers/dashboard_controller.dart';
-import 'package:form_submit_app/view/screens/authentication/profile_screen.dart';
-import 'package:form_submit_app/view/screens/dashboard/crime_detail_screen.dart';
-import 'package:form_submit_app/view/screens/dashboard/help_detail_screen.dart';
 import 'package:form_submit_app/view/screens/dashboard/list_form_screen.dart';
-import 'package:form_submit_app/view/widgets/crime_card_widget.dart';
 import 'package:form_submit_app/view/widgets/dashboard_drawer.dart';
-import 'package:form_submit_app/view/widgets/help_card_widget.dart';
-import 'package:form_submit_app/view/widgets/kpi_card.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
-// adjust this import to match where you save the controller
+import 'package:form_submit_app/controllers/getxControllers/dashboard_controller.dart';
+import 'package:form_submit_app/view/widgets/kpi_card.dart';
+import 'package:form_submit_app/view/widgets/help_card_widget.dart';
+import 'package:form_submit_app/view/widgets/crime_card_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
-  DashboardScreen({Key? key, required this.userData}) : super(key: key);
+  const DashboardScreen({Key? key, required this.userData}) : super(key: key);
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -29,466 +22,276 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // register controller once
-    if (Get.isRegistered<DashboardController>()) {
-      controller = Get.find<DashboardController>();
-    } else {
-      controller = Get.put(DashboardController(widget.userData));
-    }
+    controller = Get.put(DashboardController(widget.userData));
   }
 
-  /// Date picker helper that writes result into controller
-  Future<void> _pickDateTime({required bool isStart}) async {
+  Future<void> _pickDate({required bool isStart}) async {
     DateTime now = DateTime.now();
-    DateTime initialDate = isStart
-        ? now.subtract(const Duration(days: 1))
-        : now;
-
-    DateTime? date = await showDatePicker(
+    DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: initialDate,
+      initialDate: now,
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
     );
-    if (date == null) return;
-
-    TimeOfDay? time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(now),
-    );
-    if (time == null) return;
-
-    final combined = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute,
-    );
-
+    if (picked == null) return;
+    final cleanDate = DateTime(picked.year, picked.month, picked.day);
     if (isStart) {
-      controller.setStartDate(combined);
+      controller.setStartDate(cleanDate);
     } else {
-      controller.setEndDate(combined);
+      controller.setEndDate(
+        cleanDate.add(const Duration(hours: 23, minutes: 59, seconds: 59)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final mediaquerysize = MediaQuery.of(context).size;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        actions: [
-          IconButton(
-            onPressed: () {
-              Get.off(() => ProfileScreen(userData: widget.userData));
-            },
-            icon: const Icon(Icons.person),
-          ),
-        ],
+        backgroundColor: Colors.red,
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
         title: const Text(
           "Dashboard",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.red,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
+      body: Obx(() {
+        return SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
-              SizedBox(height: mediaquerysize.height * 0.03),
-              // Date pickers + search
+              SizedBox(height: size.height * 0.03),
+
+              /// 📅 Filter Row
               Row(
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => _pickDateTime(isStart: true),
+                      onTap: () => _pickDate(isStart: true),
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Obx(() {
-                          final dt = controller.startDate.value;
-                          return Text(
-                            dt != null
-                                ? controller.formatter.format(dt)
-                                : "Start Date",
-                          );
-                        }),
+                        child: Text(
+                          controller.startDate.value != null
+                              ? controller.formatter.format(
+                                  controller.startDate.value!,
+                                )
+                              : "Start Date",
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => _pickDateTime(isStart: false),
+                      onTap: () => _pickDate(isStart: false),
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Obx(() {
-                          final dt = controller.endDate.value;
-                          return Text(
-                            dt != null
-                                ? controller.formatter.format(dt)
-                                : "End Date",
-                          );
-                        }),
+                        child: Text(
+                          controller.endDate.value != null
+                              ? controller.formatter.format(
+                                  controller.endDate.value!,
+                                )
+                              : "End Date",
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    height: mediaquerysize.height * 0.06,
-                    width: mediaquerysize.width * 0.25,
+                    height: size.height * 0.06,
+                    width: size.width * 0.18,
                     decoration: BoxDecoration(
                       color: Colors.blue,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Obx(() {
-                      return TextButton(
-                        onPressed: controller.isLoading.value
-                            ? null
-                            : controller.searchInspections,
-                        child: controller.isLoading.value
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.search,
+                    child: TextButton(
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.filterAllCollections,
+                      child: controller.isLoading.value
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
                                 color: Colors.white,
-                                size: 30,
                               ),
-                      );
-                    }),
+                            )
+                          : const Icon(
+                              Icons.search,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              // Labels
+
+              const SizedBox(height: 20),
+
+              /// Header Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Heads",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
+                  Text(
+                    "Heads",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "Counts",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
+                  Text(
+                    "Counts",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              // GestureDetector(
-              //   onTap: () {
-              //     Get.to(() => HelpDetailScreen(collectionName: 'help_forms'));
-              //   },
-              //   child: Container(
-              //     height: mediaquerysize.height * 0.07,
-              //     width: mediaquerysize.width * 1,
-              //     decoration: BoxDecoration(
-              //       borderRadius: BorderRadius.circular(10),
-              //       color: Colors.blue,
-              //     ),
-              //     child: const Padding(
-              //       padding: EdgeInsets.all(16.0),
-              //       child: Row(
-              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //         children: [
-              //           Text(
-              //             'Road Safety KPI',
-              //             style: TextStyle(
-              //               color: Colors.white,
-              //               fontWeight: FontWeight.bold,
-              //               fontSize: 15,
-              //             ),
-              //           ),
-              //           Text(
-              //             '2',
-              //             style: TextStyle(
-              //               fontSize: 16,
-              //               fontWeight: FontWeight.bold,
-              //             ),
-              //           ),
-              //         ],
-              //       ),
-              //     ),
-              //   ),
-              // ),
-              KpiCard(mediaquerysize: mediaquerysize),
-              const SizedBox(height: 8),
-              HelpCard(mediaquerysize: mediaquerysize),
-              const SizedBox(height: 8),
-              CrimeCard(mediaquerysize: mediaquerysize),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  Get.to(
-                    () => CrimeDetailScreen(collectionName: 'crime_reports'),
-                  );
-                },
-                child: Container(
-                  height: mediaquerysize.height * 0.07,
-                  width: mediaquerysize.width * 1,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: const Color.fromARGB(255, 200, 159, 12),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Accident',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        Text(
-                          '2',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
 
-              SizedBox(height: mediaquerysize.height * 0.3),
-              // Inspect a Vehicle button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    bool? didSave = await Navigator.push<bool>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const InspectVehicleFormScreen(),
-                      ),
-                    );
+              const SizedBox(height: 8),
 
-                    if (didSave == true) {
-                      await controller.searchInspections();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                      side: const BorderSide(color: Colors.green, width: 1),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 15,
-                    ),
-                  ),
-                  child: const Text(
-                    "Add New Record",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
+              /// Cards Section
+              KpiCard(mediaquerysize: size, controller: controller),
+              const SizedBox(height: 8),
+              HelpCard(mediaquerysize: size, controller: controller),
+              const SizedBox(height: 8),
+              CrimeCard(mediaquerysize: size, controller: controller),
 
-              // Optionally render list of fetched records
-              const SizedBox(height: 16),
-              Obx(() {
-                if (controller.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (controller.records.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Column(
-                  children: controller.records.map((doc) {
-                    final data = doc.data();
-                    final ts = data['timestamp'] as Timestamp?;
-                    final created = ts != null
-                        ? DateFormat('dd-MM-yyyy hh:mm a').format(ts.toDate())
-                        : 'N/A';
-                    return ListTile(
-                      title: Text(data['title'] ?? 'Record'),
-                      subtitle: Text(created),
-                      onTap: () {
-                        // open details if needed
-                      },
-                    );
-                  }).toList(),
-                );
-              }),
+              const SizedBox(height: 60),
             ],
+          ),
+        );
+      }),
+
+      /// 🟢 Bottom Add Record Button
+      bottomSheet: Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 50, left: 15, right: 15),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () async {
+                bool? didSave = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const InspectVehicleFormScreen(),
+                  ),
+                );
+                if (didSave == true) {
+                  await controller.filterAllCollections();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: const Text(
+                "Add New Record",
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ),
           ),
         ),
       ),
-      drawer: DashboardDrawer(onItemSelected: controller.handleDrawerItem),
+      drawer: DashboardDrawer(
+        userData: widget.userData,
+        onItemSelected: (item) => controller.handleDrawerItem(item),
+      ),
+      //       drawer: Dashboardr(
+      //   userData: widget.userData,
+      //   onItemSelected: controller.handleDrawerItem,
+      // ),
     );
   }
 }
+    
+
+
+  
+
+
+  
+
+
+
+
 
 // import 'package:flutter/material.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:form_submit_app/view/screens/authentication/profile_screen.dart';
+// import 'package:form_submit_app/controllers/getxControllers/dashboard_controller.dart';
 // import 'package:form_submit_app/view/screens/dashboard/crime_detail_screen.dart';
 // import 'package:form_submit_app/view/screens/dashboard/help_detail_screen.dart';
+// import 'package:form_submit_app/view/screens/dashboard/kpi_detail_screen.dart';
 // import 'package:form_submit_app/view/screens/dashboard/list_form_screen.dart';
 // import 'package:form_submit_app/view/widgets/crime_card_widget.dart';
 // import 'package:form_submit_app/view/widgets/dashboard_drawer.dart';
 // import 'package:form_submit_app/view/widgets/help_card_widget.dart';
+// import 'package:form_submit_app/view/widgets/kpi_card.dart';
 // import 'package:get/get.dart';
-// // ignore: unnecessary_import
-// import 'package:get/get_core/src/get_main.dart';
 // import 'package:intl/intl.dart';
 
 // class DashboardScreen extends StatefulWidget {
 //   final Map<String, dynamic> userData;
-//   DashboardScreen({Key? key, required this.userData}) : super(key: key);
+
+//   const DashboardScreen({Key? key, required this.userData}) : super(key: key);
 
 //   @override
 //   State<DashboardScreen> createState() => _DashboardScreenState();
 // }
 
 // class _DashboardScreenState extends State<DashboardScreen> {
-//   String _selectedPage = "Dashboard";
+//   late final DashboardController controller;
 
-//   void _handleDrawerItem(String item) {
-//     setState(() {
-//       _selectedPage = item;
-//     });
-
-//     // Handle navigation or logic here
-//     if (item == "Logout") {
-//       // Add logout logic
-//     }
+//   @override
+//   void initState() {
+//     super.initState();
+//     controller = Get.put(DashboardController(widget.userData));
 //   }
 
-//   DateTime? _startDate;
-//   DateTime? _endDate;
-//   bool _loading = false;
-//   List<QueryDocumentSnapshot> _records = [];
-
-//   final DateFormat _formatter = DateFormat("dd-MM-yyyy hh:mm a");
-
-//   Future<void> _pickDateTime({required bool isStart}) async {
+//   /// 📅 Pick Date (Start or End)
+//   Future<void> _pickDate({required bool isStart}) async {
 //     DateTime now = DateTime.now();
-//     DateTime initialDate = isStart
-//         ? now.subtract(const Duration(days: 1))
-//         : now;
-//     DateTime? date = await showDatePicker(
+
+//     DateTime? picked = await showDatePicker(
 //       context: context,
-//       initialDate: initialDate,
+//       initialDate: now,
 //       firstDate: DateTime(2020),
 //       lastDate: DateTime(2100),
 //     );
-//     if (date == null) return;
 
-//     TimeOfDay? time = await showTimePicker(
-//       context: context,
-//       initialTime: TimeOfDay.fromDateTime(now),
-//     );
-//     if (time == null) return;
+//     if (picked == null) return;
 
-//     DateTime combined = DateTime(
-//       date.year,
-//       date.month,
-//       date.day,
-//       time.hour,
-//       time.minute,
-//     );
+//     final cleanDate = DateTime(picked.year, picked.month, picked.day);
 
-//     setState(() {
-//       if (isStart) {
-//         _startDate = combined;
-//       } else {
-//         _endDate = combined;
-//       }
-//     });
-//   }
-
-//   Future<void> _searchInspections() async {
-//     if (_startDate == null || _endDate == null) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text("Please select start and end date")),
+//     if (isStart) {
+//       controller.setStartDate(cleanDate);
+//     } else {
+//       controller.setEndDate(
+//         cleanDate.add(const Duration(hours: 23, minutes: 59, seconds: 59)),
 //       );
-//       return;
-//     }
-//     setState(() {
-//       _loading = true;
-//       _records = [];
-//     });
-//     try {
-//       QuerySnapshot snapshot = await FirebaseFirestore.instance
-//           .collection('inspections')
-//           .where(
-//             'timestamp',
-//             isGreaterThanOrEqualTo: Timestamp.fromDate(_startDate!),
-//           )
-//           .where(
-//             'timestamp',
-//             isLessThanOrEqualTo: Timestamp.fromDate(_endDate!),
-//           )
-//           .get();
-
-//       setState(() {
-//         _records = snapshot.docs;
-//         _loading = false;
-//       });
-//     } catch (e) {
-//       print("Error fetching inspections: $e");
-//       setState(() {
-//         _loading = false;
-//       });
 //     }
 //   }
-
-//   // Helper to convert DateTime to Firestore Timestamp
-//   // ignore: unused_element
-//   static Timestamp fromDate(DateTime dt) => Timestamp.fromDate(dt);
 
 //   @override
 //   Widget build(BuildContext context) {
-//     final mediaquerysize = MediaQuery.of(context).size;
+//     final size = MediaQuery.of(context).size;
+
 //     return Scaffold(
+//       backgroundColor: Colors.white,
 //       appBar: AppBar(
-//         actions: [
-//           IconButton(
-//             onPressed: () {
-//               Get.off(() => ProfileScreen(userData: widget.userData));
-//             },
-//             icon: Icon(Icons.person),
-//           ),
-//         ],
-//         iconTheme: IconThemeData(color: Colors.white),
+//         iconTheme: const IconThemeData(color: Colors.white),
 //         centerTitle: true,
 //         title: const Text(
 //           "Dashboard",
@@ -496,18 +299,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
 //         ),
 //         backgroundColor: Colors.red,
 //       ),
-//       body: SingleChildScrollView(
-//         child: Padding(
+      // drawer: Dashboardr(
+      //   userData: widget.userData,
+      //   onItemSelected: controller.handleDrawerItem,
+      // ),
+
+//       /// 🧠 Main Body
+//       body: Obx(
+//         () => SingleChildScrollView(
 //           padding: const EdgeInsets.symmetric(horizontal: 20),
 //           child: Column(
 //             children: [
-//               SizedBox(height: mediaquerysize.height * 0.03),
-//               // Date pickers + search
+//               SizedBox(height: size.height * 0.03),
+
+//               /// 📅 Date Filters
 //               Row(
 //                 children: [
 //                   Expanded(
 //                     child: GestureDetector(
-//                       onTap: () => _pickDateTime(isStart: true),
+//                       onTap: () => _pickDate(isStart: true),
 //                       child: Container(
 //                         padding: const EdgeInsets.all(12),
 //                         decoration: BoxDecoration(
@@ -515,8 +325,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 //                           borderRadius: BorderRadius.circular(8),
 //                         ),
 //                         child: Text(
-//                           _startDate != null
-//                               ? _formatter.format(_startDate!)
+//                           controller.startDate.value != null
+//                               ? controller.formatter.format(
+//                                   controller.startDate.value!,
+//                                 )
 //                               : "Start Date",
 //                         ),
 //                       ),
@@ -525,7 +337,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 //                   const SizedBox(width: 8),
 //                   Expanded(
 //                     child: GestureDetector(
-//                       onTap: () => _pickDateTime(isStart: false),
+//                       onTap: () => _pickDate(isStart: false),
 //                       child: Container(
 //                         padding: const EdgeInsets.all(12),
 //                         decoration: BoxDecoration(
@@ -533,8 +345,329 @@ class _DashboardScreenState extends State<DashboardScreen> {
 //                           borderRadius: BorderRadius.circular(8),
 //                         ),
 //                         child: Text(
-//                           _endDate != null
-//                               ? _formatter.format(_endDate!)
+//                           controller.endDate.value != null
+//                               ? controller.formatter.format(
+//                                   controller.endDate.value!,
+//                                 )
+//                               : "End Date",
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                   const SizedBox(width: 8),
+
+//                   /// 🔍 Search Button (kept!)
+//                   Container(
+//                     height: size.height * 0.06,
+//                     width: size.width * 0.18,
+//                     decoration: BoxDecoration(
+//                       color: Colors.blue,
+//                       borderRadius: BorderRadius.circular(10),
+//                     ),
+//                     child: TextButton(
+//                       onPressed: controller.isLoading.value
+//                           ? null
+//                           : controller.filterAllCollections,
+//                       child: controller.isLoading.value
+//                           ? const SizedBox(
+//                               width: 18,
+//                               height: 18,
+//                               child: CircularProgressIndicator(
+//                                 strokeWidth: 2,
+//                                 color: Colors.white,
+//                               ),
+//                             )
+//                           : const Icon(
+//                               Icons.search,
+//                               color: Colors.white,
+//                               size: 24,
+//                             ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+
+//               const SizedBox(height: 20),
+
+//               /// 🔹 Header Row
+//               Row(
+//                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                 children: const [
+//                   Text(
+//                     "Heads",
+//                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+//                   ),
+//                   Text(
+//                     "Counts",
+//                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+//                   ),
+//                 ],
+//               ),
+//               const SizedBox(height: 8),
+
+//               /// 🔹 Cards for each form
+//               KpiCard(mediaquerysize: size),
+//               const SizedBox(height: 8),
+//               HelpCard(mediaquerysize: size),
+//               const SizedBox(height: 8),
+//               CrimeCard(mediaquerysize: size),
+
+//               const SizedBox(height: 16),
+
+//               /// 🔹 Filtered Records Section
+//               if (controller.isLoading.value)
+//                 const Padding(
+//                   padding: EdgeInsets.symmetric(vertical: 20),
+//                   child: CircularProgressIndicator(),
+//                 )
+//               else if (controller.records.isEmpty)
+//                 const Padding(
+//                   padding: EdgeInsets.only(top: 20),
+//                   child: Text(
+//                     "No records found for selected dates.",
+//                     style: TextStyle(color: Colors.grey),
+//                   ),
+//                 )
+//               else
+//                 ListView.builder(
+//                   shrinkWrap: true,
+//                   physics: const NeverScrollableScrollPhysics(),
+//                   itemCount: controller.records.length,
+//                   itemBuilder: (context, index) {
+//                     final record = controller.records[index];
+//                     final data = record.data();
+//                     final Timestamp? ts =
+//                         data['timestamp'] ?? data['createdAt'];
+//                     final created = ts != null
+//                         ? DateFormat('dd-MM-yyyy').format(ts.toDate())
+//                         : 'N/A';
+//                     final collectionName = record.reference.parent.id;
+
+//                     return Card(
+//                       margin: const EdgeInsets.symmetric(vertical: 6),
+//                       elevation: 2,
+//                       child: ListTile(
+//                         title: Text(data['title'] ?? 'Untitled Record'),
+//                         subtitle: Text('Date: $created\nFrom: $collectionName'),
+//                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+//                         onTap: () {
+//                           /// ✅ Navigate based on collection
+//                           if (collectionName == 'crime_reports') {
+//                             Get.to(
+//                               () => CrimeDetailScreen(
+//                                 collectionName: collectionName,
+//                               ),
+//                             );
+//                           } else if (collectionName == 'help_forms') {
+//                             Get.to(
+//                               () => HelpDetailScreen(
+//                                 collectionName: collectionName,
+//                               ),
+//                             );
+//                           } else if (collectionName == 'kpi_reports') {
+//                             Get.to(() => KpiDetailScreen());
+//                           } else {
+//                             Get.snackbar(
+//                               "Unknown Collection",
+//                               "No detail screen available for '$collectionName'",
+//                               snackPosition: SnackPosition.BOTTOM,
+//                               backgroundColor: Colors.redAccent,
+//                               colorText: Colors.white,
+//                             );
+//                           }
+//                         },
+//                       ),
+//                     );
+//                   },
+//                 ),
+
+//               SizedBox(height: size.height * 0.1),
+//             ],
+//           ),
+//         ),
+//       ),
+
+//       /// 🟢 Bottom Add Record Button
+//       bottomSheet: Container(
+//         color: Colors.white,
+//         child: Padding(
+//           padding: const EdgeInsets.only(bottom: 50, left: 15, right: 15),
+//           child: SizedBox(
+//             width: double.infinity,
+//             child: ElevatedButton(
+//               onPressed: () async {
+//                 bool? didSave = await Navigator.push<bool>(
+//                   context,
+//                   MaterialPageRoute(
+//                     builder: (_) => const InspectVehicleFormScreen(),
+//                   ),
+//                 );
+//                 if (didSave == true) {
+//                   await controller.filterAllCollections();
+//                 }
+//               },
+//               style: ElevatedButton.styleFrom(
+//                 backgroundColor: Colors.green,
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(6),
+//                 ),
+//                 padding: const EdgeInsets.symmetric(vertical: 14),
+//               ),
+//               child: const Text(
+//                 "Add New Record",
+//                 style: TextStyle(color: Colors.white, fontSize: 16),
+//               ),
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import 'package:flutter/material.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:form_submit_app/controllers/getxControllers/dashboard_controller.dart';
+// import 'package:form_submit_app/view/screens/dashboard/crime_detail_screen.dart';
+// import 'package:form_submit_app/view/screens/dashboard/help_detail_screen.dart';
+// import 'package:form_submit_app/view/screens/dashboard/kpi_detail_screen.dart';
+// import 'package:form_submit_app/view/screens/dashboard/list_form_screen.dart';
+// import 'package:form_submit_app/view/widgets/crime_card_widget.dart';
+// import 'package:form_submit_app/view/widgets/dashboard_drawer.dart';
+// import 'package:form_submit_app/view/widgets/help_card_widget.dart';
+// import 'package:form_submit_app/view/widgets/kpi_card.dart';
+// import 'package:get/get.dart';
+// import 'package:intl/intl.dart';
+
+// class DashboardScreen extends StatefulWidget {
+//   final Map<String, dynamic> userData;
+
+//   const DashboardScreen({Key? key, required this.userData}) : super(key: key);
+
+//   @override
+//   State<DashboardScreen> createState() => _DashboardScreenState();
+// }
+
+// class _DashboardScreenState extends State<DashboardScreen> {
+//   late final DashboardController controller;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     controller = Get.put(DashboardController(widget.userData));
+//   }
+
+//   /// 📅 Pick Date (Start or End)
+//   Future<void> _pickDate({required bool isStart}) async {
+//     DateTime now = DateTime.now();
+
+//     DateTime? picked = await showDatePicker(
+//       context: context,
+//       initialDate: now,
+//       firstDate: DateTime(2020),
+//       lastDate: DateTime(2100),
+//     );
+
+//     if (picked == null) return;
+
+//     final cleanDate = DateTime(picked.year, picked.month, picked.day);
+
+//     if (isStart) {
+//       controller.setStartDate(cleanDate);
+//     } else {
+//       controller.setEndDate(
+//         cleanDate.add(const Duration(hours: 23, minutes: 59)),
+//       );
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final size = MediaQuery.of(context).size;
+
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       appBar: AppBar(
+//         iconTheme: const IconThemeData(color: Colors.white),
+//         centerTitle: true,
+//         title: const Text(
+//           "Dashboard",
+//           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+//         ),
+//         backgroundColor: Colors.red,
+//       ),
+//       r: DashboardDrawer(
+//         userData: widget.userData,
+//         onItemSelected: controller.handleDrawerItem,
+//       ),
+//       body: Obx(
+//         () => SingleChildScrollView(
+//           padding: const EdgeInsets.symmetric(horizontal: 20),
+//           child: Column(
+//             children: [
+//               SizedBox(height: size.height * 0.03),
+
+//               /// 📅 Date Filters
+//               Row(
+//                 children: [
+//                   Expanded(
+//                     child: GestureDetector(
+//                       onTap: () => _pickDate(isStart: true),
+//                       child: Container(
+//                         padding: const EdgeInsets.all(12),
+//                         decoration: BoxDecoration(
+//                           border: Border.all(color: Colors.grey),
+//                           borderRadius: BorderRadius.circular(8),
+//                         ),
+//                         child: Text(
+//                           controller.startDate.value != null
+//                               ? controller.formatter.format(
+//                                   controller.startDate.value!,
+//                                 )
+//                               : "Start Date",
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                   const SizedBox(width: 8),
+//                   Expanded(
+//                     child: GestureDetector(
+//                       onTap: () => _pickDate(isStart: false),
+//                       child: Container(
+//                         padding: const EdgeInsets.all(12),
+//                         decoration: BoxDecoration(
+//                           border: Border.all(color: Colors.grey),
+//                           borderRadius: BorderRadius.circular(8),
+//                         ),
+//                         child: Text(
+//                           controller.endDate.value != null
+//                               ? controller.formatter.format(
+//                                   controller.endDate.value!,
+//                                 )
 //                               : "End Date",
 //                         ),
 //                       ),
@@ -542,250 +675,177 @@ class _DashboardScreenState extends State<DashboardScreen> {
 //                   ),
 //                   const SizedBox(width: 8),
 //                   Container(
-//                     height: mediaquerysize.height * 0.06.h,
-//                     width: mediaquerysize.width * 0.25.w,
+//                     height: size.height * 0.06,
+//                     width: size.width * 0.20,
 //                     decoration: BoxDecoration(
 //                       color: Colors.blue,
 //                       borderRadius: BorderRadius.circular(10),
 //                     ),
 //                     child: TextButton(
-//                       onPressed: _searchInspections,
-//                       child: Icon(
-//                         Icons.search,
-//                         color: Colors.white,
-//                         size: 30,
-//                         weight: 40,
-//                       ),
+//                       onPressed: controller.isLoading.value
+//                           ? null
+//                           : controller.filterAllCollections,
+//                       child: controller.isLoading.value
+//                           ? const SizedBox(
+//                               width: 18,
+//                               height: 18,
+//                               child: CircularProgressIndicator(
+//                                 strokeWidth: 2,
+//                                 color: Colors.white,
+//                               ),
+//                             )
+//                           : const Icon(
+//                               Icons.search,
+//                               color: Colors.white,
+//                               size: 26,
+//                             ),
 //                     ),
 //                   ),
-//                   // ElevatedButton(
-//                   //   onPressed: _searchInspections,
-//                   //   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-//                   //   child: const Icon(Icons.search, color: Colors.white),
-//                   // ),
 //                 ],
 //               ),
-//               const SizedBox(height: 16),
-//               // Labels
+
+//               const SizedBox(height: 20),
+
+//               /// 🔹 Heads Section
 //               Row(
 //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                 children: [
-//                   Align(
-//                     alignment: Alignment.centerLeft,
-//                     child: const Text(
-//                       "Heads",
-//                       style: TextStyle(
-//                         fontWeight: FontWeight.bold,
-//                         fontSize: 16,
-//                       ),
-//                     ),
+//                 children: const [
+//                   Text(
+//                     "Heads",
+//                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
 //                   ),
-
-//                   Align(
-//                     alignment: Alignment.centerRight,
-//                     child: const Text(
-//                       "Counts",
-//                       style: TextStyle(
-//                         fontWeight: FontWeight.bold,
-//                         fontSize: 16,
-//                       ),
-//                     ),
+//                   Text(
+//                     "Counts",
+//                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
 //                   ),
 //                 ],
 //               ),
 //               const SizedBox(height: 8),
-//               GestureDetector(
-//                 onTap: () {
-//                   Get.to(() => HelpDetailScreen(collectionName: 'help_forms'));
-//                 },
-//                 child: Container(
-//                   height: mediaquerysize.height * 0.07.h,
-//                   width: mediaquerysize.width * 1.w,
-//                   decoration: BoxDecoration(
-//                     borderRadius: BorderRadius.circular(10),
-//                     color: Colors.blue,
-//                   ),
-//                   child: Padding(
-//                     padding: const EdgeInsets.all(16.0),
-//                     child: Row(
-//                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                       children: [
-//                         Text(
-//                           'Road Safety KPI',
-//                           style: TextStyle(
-//                             color: Colors.white,
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 15,
-//                           ),
-//                         ),
-//                         Text(
-//                           '2',
-//                           style: TextStyle(
-//                             fontSize: 16,
-//                             fontWeight: FontWeight.bold,
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//               const SizedBox(height: 8),
-//               HelpCard(mediaquerysize: mediaquerysize),
-//               // GestureDetector(
-//               //   onTap: () {
-//               //     Get.to(() => HelpDetailScreen());
-//               //   },
-//               //   child: Container(
-//               //     height: mediaquerysize.height * 0.07.h,
-//               //     width: mediaquerysize.width * 1.w,
-//               //     decoration: BoxDecoration(
-//               //       borderRadius: BorderRadius.circular(10),
-//               //       color: Colors.green,
-//               //     ),
-//               //     child: Padding(
-//               //       padding: const EdgeInsets.all(16.0),
-//               //       child: Row(
-//               //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//               //         children: [
-//               //           Text(
-//               //             'Helps',
-//               //             style: TextStyle(
-//               //               color: Colors.white,
-//               //               fontWeight: FontWeight.bold,
-//               //               fontSize: 15,
-//               //             ),
-//               //           ),
-//               //           Text(
-//               //             '2',
-//               //             style: TextStyle(
-//               //               fontSize: 16,
-//               //               fontWeight: FontWeight.bold,
-//               //             ),
-//               //           ),
-//               //         ],
-//               //       ),
-//               //     ),
-//               //   ),
-//               // ),
-//               const SizedBox(height: 8),
-//               CrimeCard(mediaquerysize: mediaquerysize),
-//               // GestureDetector(
-//               //   onTap: () {
-//               //     Get.to(() => CrimeDetailScreen());
-//               //   },
-//               //   child: Container(
-//               //     height: mediaquerysize.height * 0.07.h,
-//               //     width: mediaquerysize.width * 1.w,
-//               //     decoration: BoxDecoration(
-//               //       borderRadius: BorderRadius.circular(10),
-//               //       color: Colors.red,
-//               //     ),
-//               //     child: Padding(
-//               //       padding: const EdgeInsets.all(16.0),
-//               //       child: Row(
-//               //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//               //         children: [
-//               //           Text(
-//               //             'Crime',
-//               //             style: TextStyle(
-//               //               color: Colors.white,
-//               //               fontWeight: FontWeight.bold,
-//               //               fontSize: 15,
-//               //             ),
-//               //           ),
-//               //           Text(
-//               //             '2',
-//               //             style: TextStyle(
-//               //               fontSize: 16,
-//               //               fontWeight: FontWeight.bold,
-//               //             ),
-//               //           ),
-//               //         ],
-//               //       ),
-//               //     ),
-//               //   ),
-//               // ),
-//               SizedBox(height: 8),
-//               GestureDetector(
-//                 onTap: () {
-//                   Get.to(
-//                     () => CrimeDetailScreen(collectionName: 'crime_reports'),
-//                   );
-//                   // Get.to(() => CrimeDetailScreen());
-//                 },
-//                 child: Container(
-//                   height: mediaquerysize.height * 0.07.h,
-//                   width: mediaquerysize.width * 1.w,
-//                   decoration: BoxDecoration(
-//                     borderRadius: BorderRadius.circular(10),
-//                     color: Color.fromARGB(255, 200, 159, 12),
-//                   ),
-//                   child: Padding(
-//                     padding: const EdgeInsets.all(16.0),
-//                     child: Row(
-//                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                       children: [
-//                         Text(
-//                           'Accident',
-//                           style: TextStyle(
-//                             color: Colors.white,
-//                             fontWeight: FontWeight.bold,
-//                             fontSize: 15,
-//                           ),
-//                         ),
-//                         Text(
-//                           '2',
-//                           style: TextStyle(
-//                             fontSize: 16,
-//                             fontWeight: FontWeight.bold,
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-//               ),
 
-//               SizedBox(height: mediaquerysize.height * 0.3),
-//               // Inspect a Vehicle button
-//               SizedBox(
-//                 width: double.infinity,
-//                 child: ElevatedButton(
-//                   onPressed: () async {
-//                     bool? didSave = await Navigator.push<bool>(
-//                       context,
-//                       MaterialPageRoute(
-//                         builder: (_) => const InspectVehicleFormScreen(),
+//               /// 🔹 Form Head Cards
+//               KpiCard(mediaquerysize: size),
+//               const SizedBox(height: 8),
+//               HelpCard(mediaquerysize: size),
+//               const SizedBox(height: 8),
+//               CrimeCard(mediaquerysize: size),
+//               const SizedBox(height: 16),
+
+//               /// 🔹 Filtered Records Section
+//               if (controller.isLoading.value)
+//                 const Padding(
+//                   padding: EdgeInsets.symmetric(vertical: 20),
+//                   child: CircularProgressIndicator(),
+//                 )
+//               else if (controller.records.isEmpty)
+//                 const Padding(
+//                   padding: EdgeInsets.only(top: 20),
+//                   child: Text("No records found for selected dates."),
+//                 )
+//               else
+//                 ListView.builder(
+//                   shrinkWrap: true,
+//                   physics: const NeverScrollableScrollPhysics(),
+//                   itemCount: controller.records.length,
+//                   itemBuilder: (context, index) {
+//                     final record = controller.records[index];
+//                     final data = record.data();
+//                     final ts = data['timestamp'] as Timestamp?;
+//                     final created = ts != null
+//                         ? DateFormat('dd-MM-yyyy').format(ts.toDate())
+//                         : 'N/A';
+//                     final collectionName = record.reference.parent.id;
+
+//                     return Card(
+//                       margin: const EdgeInsets.symmetric(vertical: 6),
+//                       elevation: 2,
+//                       child: ListTile(
+//                         title: Text(data['title'] ?? 'Untitled Record'),
+//                         subtitle: Text('Date: $created\nFrom: $collectionName'),
+//                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+//                         onTap: () {
+//                           // ✅ Navigate dynamically based on collection
+//                           if (collectionName == 'crime_reports') {
+//                             Get.to(
+//                               () => CrimeDetailScreen(
+//                                 collectionName: collectionName,
+//                               ),
+//                             );
+//                           } else if (collectionName == 'help_forms') {
+//                             Get.to(
+//                               () => HelpDetailScreen(
+//                                 collectionName: collectionName,
+//                               ),
+//                             );
+//                           } else if (collectionName == 'kpi_reports') {
+//                             Get.to(() => KpiDetailScreen());
+//                           } else {
+//                             Get.snackbar(
+//                               "Unknown Collection",
+//                               "No detail screen available for '$collectionName'",
+//                               snackPosition: SnackPosition.BOTTOM,
+//                               backgroundColor: Colors.redAccent,
+//                               colorText: Colors.white,
+//                             );
+//                           }
+//                         },
 //                       ),
 //                     );
-
-//                     if (didSave == true) {
-//                       _searchInspections();
-//                     }
 //                   },
-//                   style: ElevatedButton.styleFrom(
-//                     backgroundColor: Colors.green,
-//                     shape: RoundedRectangleBorder(
-//                       borderRadius: BorderRadius.circular(4),
-//                       side: BorderSide(color: Colors.green, width: 1),
-//                     ),
-//                     padding: const EdgeInsets.symmetric(
-//                       horizontal: 24,
-//                       vertical: 15,
-//                     ), // optional
-//                   ),
-//                   child: const Text(
-//                     "Add New Record",
-//                     style: TextStyle(color: Colors.white),
-//                   ),
 //                 ),
-//               ),
+
+//               SizedBox(height: size.height * 0.1),
 //             ],
 //           ),
 //         ),
 //       ),
-//       drawer: DashboardDrawer(onItemSelected: _handleDrawerItem),
+//       bottomSheet: Container(
+//         color: Colors.white,
+//         child: Padding(
+//           padding: const EdgeInsets.only(bottom: 50, left: 15, right: 15),
+//           child: SizedBox(
+//             width: double.infinity,
+//             child: ElevatedButton(
+//               onPressed: () async {
+//                 bool? didSave = await Navigator.push<bool>(
+//                   context,
+//                   MaterialPageRoute(
+//                     builder: (_) => const InspectVehicleFormScreen(),
+//                   ),
+//                 );
+//                 if (didSave == true) await controller.filterAllCollections();
+//               },
+//               style: ElevatedButton.styleFrom(
+//                 backgroundColor: Colors.green,
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(6),
+//                 ),
+//                 padding: const EdgeInsets.symmetric(vertical: 14),
+//               ),
+//               child: const Text(
+//                 "Add New Record",
+//                 style: TextStyle(color: Colors.white, fontSize: 16),
+//               ),
+//             ),
+//           ),
+//         ),
+//       ),
 //     );
 //   }
 // }
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

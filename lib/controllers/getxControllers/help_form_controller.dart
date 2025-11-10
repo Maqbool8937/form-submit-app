@@ -21,6 +21,8 @@ class HelpFormController extends GetxController {
   final descriptionController = TextEditingController();
   final notesController = TextEditingController();
 
+  final selectedDateTime = Rx<DateTime>(DateTime.now());
+
   // Dropdown reactive values
   final sourceOfInfo = '1124'.obs;
   final typeOfHelp = 'Mechanical'.obs;
@@ -315,8 +317,10 @@ class HelpFormController extends GetxController {
     isSubmitting.value = true;
     try {
       await FirebaseFirestore.instance.collection('help_forms').add({
-        'date': DateTime.now().toIso8601String(),
-        'time': TimeOfDay.now().format(context),
+        // 'date': DateTime.now().toIso8601String(),
+        // 'time': TimeOfDay.now().format(context),
+        "timestamp": FieldValue.serverTimestamp(),
+        "date_time": selectedDateTime.value.toIso8601String(),
         'region': selectedRegion.value,
         'district': selectedDistrict.value,
         'php_post': selectedPost.value,
@@ -339,9 +343,8 @@ class HelpFormController extends GetxController {
 
       Get.snackbar("Success", "Help Form Submitted ✅");
       // navigate back to dashboard (keep your original behavior)
-      Get.off(
-        () => DashboardScreen(userData: {}),
-      ); // placeholder; replace with Dashboard if needed
+      Get.off(() => DashboardScreen(userData: {}));
+      //Get.off(() => DashboardScreen());
       resetForm();
     } catch (e) {
       Get.snackbar("Error", "Failed to submit form: $e");

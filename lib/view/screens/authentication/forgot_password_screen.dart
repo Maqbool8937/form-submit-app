@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import '../../../controllers/utils/app_extension.dart';
 import '../../widgets/custom_button.dart';
 
+// ignore: must_be_immutable
 class ForgotPasswordScreen extends StatelessWidget {
   ForgotPasswordScreen({super.key});
   GlobalKey<FormState> formKey = GlobalKey();
@@ -62,7 +63,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                   width: mediaQuerySize.width * 0.9.w,
                   name: 'Send Reset Link',
                   onTap: () {
-                    if (formKey.currentState!.validate() ?? false) {
+                    if (formKey.currentState!.validate()) {
                       // Get.to(() => EditProfileOne());
                     }
                   },

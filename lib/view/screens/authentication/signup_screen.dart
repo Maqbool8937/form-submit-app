@@ -242,7 +242,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               'Account created successfully',
                             );
                           } else {
-                            Get.snackbar('Error', 'Signup failed. Try again');
+                            Get.snackbar('Error', 'Signup failed. Try again');  
                           }
                         }
                       },

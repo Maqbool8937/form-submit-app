@@ -23,6 +23,7 @@ class AuthService {
         email: email,
         password: password,
       );
+
       String uid = uc.user!.uid;
       print('Login success. UID = $uid');
 

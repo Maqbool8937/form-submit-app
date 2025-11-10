@@ -21,6 +21,8 @@ class CrimeReportController extends GetxController {
   final firSectionsController = TextEditingController();
   final policeStationController = TextEditingController();
 
+  final selectedDateTime = Rx<DateTime>(DateTime.now());
+
   // 🔹 Dropdown reactive values
   final sourceInfo = "1124".obs;
   final crimeHead = "Murder".obs;
@@ -309,8 +311,10 @@ class CrimeReportController extends GetxController {
     isSubmitting.value = true;
     try {
       await FirebaseFirestore.instance.collection("crime_reports").add({
-        "date": DateTime.now().toIso8601String(),
-        "time": TimeOfDay.now().format(context),
+        // "date": DateTime.now().toIso8601String(),
+        // "time": TimeOfDay.now().format(context),
+        "timestamp": FieldValue.serverTimestamp(),
+        "date_time": selectedDateTime.value.toIso8601String(),
         "region": selectedRegion.value,
         "district": selectedDistrict.value,
         "php_post": selectedPost.value,
@@ -339,6 +343,7 @@ class CrimeReportController extends GetxController {
 
       Get.snackbar("Success", "Crime Report Submitted ✅");
       Get.off(() => DashboardScreen(userData: {}));
+      //Get.off(() => DashboardScreen());
       clearForm();
     } catch (e) {
       Get.snackbar("Error", e.toString());

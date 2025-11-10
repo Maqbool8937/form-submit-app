@@ -25,6 +25,7 @@ class ProfileScreen extends StatelessWidget {
         leading: IconButton(
           onPressed: () {
             Get.off(() => DashboardScreen(userData: userData));
+            //Get.off(() => DashboardScreen());
           },
           icon: Icon(Icons.arrow_back),
         ),
